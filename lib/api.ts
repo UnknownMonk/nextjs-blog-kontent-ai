@@ -1,13 +1,13 @@
-import { Author, contentTypes, Post } from '@/models'
-import { Author as ViewModelAuthor } from '@/viewmodels/author'
-import { Post as ViewModelPost } from '@/viewmodels/post'
-import { DeliveryClient } from '@kontent-ai/delivery-sdk'
-import pkg from '../package.json'
+import { Author, contentTypes, Post } from "@/models";
+import { Author as ViewModelAuthor } from "@/viewmodels/author";
+import { Post as ViewModelPost } from "@/viewmodels/post";
+import { DeliveryClient } from "@kontent-ai/delivery-sdk";
+import pkg from "../package.json";
 
-const sourceTrackingHeaderName = 'X-KC-SOURCE'
+const sourceTrackingHeaderName = "X-KC-SOURCE";
 
 const client = new DeliveryClient({
-  projectId: process.env.KONTENT_PROJECT_ID ?? '',
+  projectId: process.env.KONTENT_PROJECT_ID ?? "",
   previewApiKey: process.env.KONTENT_PREVIEW_API_KEY,
   globalHeaders: (_queryConfig) => [
     {
@@ -15,13 +15,15 @@ const client = new DeliveryClient({
       value: `@vercel/next.js/example/${pkg.name};${pkg.version}`,
     },
   ],
-})
+});
 
 function parseAuthor(author: Author): ViewModelAuthor {
+  console.log(author);
+
   return {
     name: author.elements.name.value,
     picture: author.elements.picture.value[0].url,
-  }
+  };
 }
 
 function parsePost(post: Post): ViewModelPost {
@@ -33,18 +35,18 @@ function parsePost(post: Post): ViewModelPost {
     excerpt: post.elements.excerpt.value,
     coverImage: post.elements.cover_image.value[0].url,
     author: parseAuthor(post.elements.author.linkedItems[0]),
-  }
+  };
 }
 
 export async function getAllPostSlugs() {
   return await client
     .items<Post>()
     .type(contentTypes.post.codename)
-    .elementsParameter(['slug'])
+    .elementsParameter(["slug"])
     .toPromise()
     .then((response) =>
       response.data.items.map((post) => post.elements.slug.value)
-    )
+    );
 }
 
 export async function getMorePostsForSlug(slug: string, preview: boolean) {
@@ -54,11 +56,11 @@ export async function getMorePostsForSlug(slug: string, preview: boolean) {
     .queryConfig({
       usePreviewMode: !!preview,
     })
-    .orderByDescending('elements.date')
-    .notEqualsFilter('elements.slug', slug)
+    .orderByDescending("elements.date")
+    .notEqualsFilter("elements.slug", slug)
     .limitParameter(2)
     .toPromise()
-    .then((response) => response.data.items.map((post) => parsePost(post)))
+    .then((response) => response.data.items.map((post) => parsePost(post)));
 }
 
 export async function getPostBySlug(slug: string, preview: boolean) {
@@ -68,9 +70,9 @@ export async function getPostBySlug(slug: string, preview: boolean) {
     .queryConfig({
       usePreviewMode: !!preview,
     })
-    .equalsFilter('elements.slug', slug)
+    .equalsFilter("elements.slug", slug)
     .toPromise()
-    .then((response) => parsePost(response.data.items[0]))
+    .then((response) => parsePost(response.data.items[0]));
 }
 
 export async function getAllPosts(preview: boolean) {
@@ -80,7 +82,7 @@ export async function getAllPosts(preview: boolean) {
     .queryConfig({
       usePreviewMode: preview,
     })
-    .orderByDescending('elements.date')
+    .orderByDescending("elements.date")
     .toPromise()
-    .then((response) => response.data.items.map((post) => parsePost(post)))
+    .then((response) => response.data.items.map((post) => parsePost(post)));
 }

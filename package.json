@@ -1,4 +1,6 @@
 {
+  "name": "blog",
+  "version": "0",
   "private": true,
   "scripts": {
     "dev": "next",
